@@ -1,5 +1,9 @@
 package com.code.freud.jerentre;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.SmsManager;
@@ -26,16 +30,29 @@ public class MainActivity extends AppCompatActivity {
         buttonSendSMS.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    SmsManager smsManager = SmsManager.getDefault();
-                    smsManager.sendTextMessage("123456789",null,"Je rentre. Bisous",null,null);
-                    textViewStatus.setText("SMS envoyé !");
-                }
-                catch (Exception e) {
-                    textViewStatus.setText(e.getMessage());
-                }
+                sendSMS();
             }
         });
+    }
+
+    private void sendSMS() {
+        try {
+            Context context = getApplicationContext();
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+            String smsNumber=prefs.getString("sms_number", "");
+            String smsText=prefs.getString("sms_text", "");
+
+            if (smsNumber.isEmpty() || smsText.isEmpty()) {
+                textViewStatus.setText("Please, configure the sms' text and number");
+            } else {
+                SmsManager smsManager = SmsManager.getDefault();
+                smsManager.sendTextMessage(smsNumber,null,smsText,null,null);
+                textViewStatus.setText("The SMS has been sent !");
+            }
+        }
+        catch (Exception e) {
+            textViewStatus.setText(e.getMessage());
+        }
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -47,6 +64,10 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.configurer:
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
+                return true;
             case R.id.quitter:
                 finish();
                 return true;
